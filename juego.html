@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>JUEGO DE JORGITO</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+        }
+        
+        body {
+            background: #0a0a0a;
+            font-family: Arial, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            touch-action: none;
+        }
+        
+        #app {
+            width: 100%;
+            max-width: 420px;
+            height: 100vh;
+            max-height: 800px;
+            background: linear-gradient(180deg, #1a3a1a, #0d1f0d);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            border: 2px solid #333;
+        }
+        
+        #titulo {
+            background: linear-gradient(135deg, #1a237e, #0d47a1);
+            color: #ffd700;
+            text-align: center;
+            padding: 10px;
+            font-size: 22px;
+            font-weight: bold;
+            border-bottom: 3px solid #ffd700;
+            flex-shrink: 0;
+        }
+        
+        #info-ia {
+            background: rgba(0,0,0,0.7);
+            padding: 6px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #1565c0;
+            flex-shrink: 0;
+        }
+        
+        .equipo-ia {
+            color: #64b5f6;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        #fichas-ia-visual {
+            display: flex;
+            gap: 3px;
+        }
+        
+        .ficha-tapada {
+            width: 20px;
+            height: 32px;
+            background: linear-gradient(145deg, #1a237e, #0d47a1);
+            border-radius: 3px;
+            border: 2px solid #42a5f5;
+        }
+        
+        #mesa {
+            flex: 1;
+            background: radial-gradient(ellipse at center, #1a6a3a, #0d3a1a);
+            position: relative;
+            overflow: hidden;
+            min-height: 150px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+        }
+        
+        #turno-texto {
+            color: #ffd700;
+            font-weight: bold;
+            font-size: 15px;
+            background: rgba(0,0,0,0.7);
+            padding: 3px 15px;
+            border-radius: 12px;
+            margin-bottom: 5px;
+            z-index: 10;
+        }
+        
+        #contenedor-fichas {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0px;
+            padding: 5px;
+            min-height: 70px;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            max-width: 100%;
+        }
+        
+        .ficha-mesa {
+            width: 48px;
+            height: 68px;
+            background: linear-gradient(145deg, #f5f5f5, #e0e0e0);
+            border: 2px solid #333;
+            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #1a1a1a;
+            flex-shrink: 0;
+            font-weight: bold;
+            font-size: 18px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+            position: relative;
+        }
+        
+        .ficha-mesa .sep {
+            width: 70%;
+            height: 2px;
+            background: #333;
+            margin: 2px 0;
+        }
+        
+        .ficha-mesa.extremo-izq {
+            border-color: #ff1744;
+            border-width: 3px;
+            box-shadow: 0 0 20px rgba(255,23,68,0.3);
+        }
+        
+        .ficha-mesa.extremo-der {
+            border-color: #00e5ff;
+            border-width: 3px;
+            box-shadow: 0 0 20px rgba(0,229,255,0.3);
+        }
+        
+        .ficha-mesa .conexion-izq {
+            position: absolute;
+            left: -2px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 20px;
+            background: #ff1744;
+            border-radius: 2px;
+        }
+        
+        .ficha-mesa .conexion-der {
+            position: absolute;
+            right: -2px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 20px;
+            background: #00e5ff;
+            border-radius: 2px;
+        }
+        
+        #info-extremos {
+            color: rgba(255,255,255,0.7);
+            font-size: 12px;
+            background: rgba(0,0,0,0.6);
+            padding: 2px 15px;
+            border-radius: 10px;
+            margin-top: 3px;
+            z-index: 10;
+        }
+        
+        #info-jugador {
+            background: rgba(0,0,0,0.7);
+            padding: 6px 12px;
+            border-top: 2px solid #f9a825;
+            flex-shrink: 0;
+        }
+        
+        #info-jugador-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+        
+        .equipo-jugador {
+            color: #ffd740;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        #fichas-jugador-container {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            padding: 4px 0;
+            min-height: 55px;
+            align-items: center;
+        }
+        
+        .ficha-jugador {
+            width: 44px;
+            height: 60px;
+            background: linear-gradient(145deg, #f9a825, #f57f17);
+            border: 2px solid #ffd700;
+            border-radius: 5px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #1a1a1a;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: all 0.15s;
+            box-shadow: 0 2px 8px rgba(249,168,37,0.3);
+        }
+        
+        .ficha-jugador:active {
+            transform: scale(0.9);
+        }
+        
+        .ficha-jugador .sep {
+            width: 60%;
+            height: 2px;
+            background: rgba(0,0,0,0.3);
+            margin: 2px 0;
+        }
+        
+        .ficha-jugador.invalida {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        
+        .ficha-jugador.valida {
+            cursor: pointer;
+            animation: pulse 1s infinite;
+        }
+        
+        .ficha-jugador.valida:hover {
+            transform: scale(1.08);
+            box-shadow: 0 0 30px rgba(255,215,0,0.6);
+        }
+        
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 2px 8px rgba(249,168,37,0.3); }
+            50% { box-shadow: 0 0 25px rgba(255,215,0,0.5); }
+        }
+        
+        #controles {
+            background: rgba(0,0,0,0.85);
+            padding: 6px;
+            display: flex;
+            gap: 5px;
+            border-top: 2px solid #333;
+            flex-shrink: 0;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 10px 5px;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            touch-action: manipulation;
+        }
+        
+        .btn:active {
+            transform: scale(0.92);
+        }
+        
+        .btn-comer {
+            background: #e53935;
+            color: white;
+        }
+        
+        .btn-pasar {
+            background: #ef6c00;
+            color: white;
+        }
+        
+        .btn-reiniciar {
+            background: #43a047;
+            color: white;
+        }
+        
+        .btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+        
+        #mensaje {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.95);
+            padding: 20px 30px;
+            border-radius: 15px;
+            color: #ffd700;
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            border: 3px solid #ffd700;
+            display: none;
+            z-index: 100;
+            min-width: 180px;
+        }
+        
+        #mensaje .sub {
+            font-size: 14px;
+            color: #aaa;
+            margin-top: 5px;
+        }
+        
+        #mensaje .btn-jugar {
+            margin-top: 12px;
+            background: #ffd700;
+            color: #1a1a1a;
+            border: none;
+            padding: 8px 25px;
+            border-radius: 20px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        #fichas-jugador-container::-webkit-scrollbar {
+            height: 3px;
+        }
+        #fichas-jugador-container::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.05);
+        }
+        #fichas-jugador-container::-webkit-scrollbar-thumb {
+            background: #f9a825;
+            border-radius: 10px;
+        }
+        
+        #contenedor-fichas::-webkit-scrollbar {
+            height: 3px;
+        }
+        #contenedor-fichas::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.05);
+        }
+        #contenedor-fichas::-webkit-scrollbar-thumb {
+            background: #ffd700;
+            border-radius: 10px;
+        }
+        
+        .ficha-jugador.comiendo {
+            animation: comerAnim 0.5s ease;
+        }
+        
+        @keyframes comerAnim {
+            0% { transform: scale(0) rotate(-20deg); opacity: 0; }
+            100% { transform: scale(1) rotate(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div id="titulo">🎲 JUEGO DE JORGITO</div>
+        
+        <div id="info-ia">
+            <span class="equipo-ia">🤖 IA AZUL</span>
+            <span class="equipo-ia" id="contador-ia">5</span>
+            <div id="fichas-ia-visual"></div>
+        </div>
+        
+        <div id="mesa">
+            <div id="turno-texto">TU TURNO</div>
+            <div id="contenedor-fichas"></div>
+            <div id="info-extremos">⬅ EXTREMO IZQ | EXTREMO DER ➡</div>
+            <div id="mensaje">
+                <div id="msg-texto">🎉 ¡GANASTE!</div>
+                <div class="sub" id="msg-sub">Felicidades</div>
+                <button class="btn-jugar" onclick="juego.reiniciar()">🔄 JUGAR DE NUEVO</button>
+            </div>
+        </div>
+        
+        <div id="info-jugador">
+            <div id="info-jugador-top">
+                <span class="equipo-jugador">👤 TÚ</span>
+                <span class="equipo-jugador" id="contador-jugador">5</span>
+            </div>
+            <div id="fichas-jugador-container"></div>
+        </div>
+        
+        <div id="controles">
+            <button class="btn btn-comer" id="btn-comer">🍽️ COMER</button>
+            <button class="btn btn-pasar" id="btn-pasar">⏭️ PASAR</button>
+            <button class="btn btn-reiniciar" id="btn-reiniciar">🔄 REINICIAR</button>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // DOMINÓ CON FICHAS PEGADAS Y COMER FUNCIONAL
+        // ============================================
+        
+        class JuegoDomino {
+            constructor() {
+                // Elementos
+                this.mesaDiv = document.getElementById('contenedor-fichas');
+                this.fichasJugadorDiv = document.getElementById('fichas-jugador-container');
+                this.fichasIaVisual = document.getElementById('fichas-ia-visual');
+                this.contadorIa = document.getElementById('contador-ia');
+                this.contadorJugador = document.getElementById('contador-jugador');
+                this.turnoTexto = document.getElementById('turno-texto');
+                this.infoExtremos = document.getElementById('info-extremos');
+                this.mensaje = document.getElementById('mensaje');
+                this.msgTexto = document.getElementById('msg-texto');
+                this.msgSub = document.getElementById('msg-sub');
+                
+                this.btnComer = document.getElementById('btn-comer');
+                this.btnPasar = document.getElementById('btn-pasar');
+                this.btnReiniciar = document.getElementById('btn-reiniciar');
+                
+                // Estado
+                this.fichasIA = [];
+                this.fichasJugador = [];
+                this.fichasMesa = [];
+                this.monton = [];
+                this.turno = 'jugador';
+                this.terminado = false;
+                this.extremoIzq = null;
+                this.extremoDer = null;
+                
+                this.iniciar();
+                this.eventos();
+            }
+            
+            // ========== INICIAR ==========
+            iniciar() {
+                this.fichasIA = [];
+                this.fichasJugador = [];
+                this.fichasMesa = [];
+                this.monton = [];
+                this.terminado = false;
+                this.mensaje.style.display = 'none';
+                
+                // Crear fichas (0-0 hasta 6-6 para más variedad)
+                let fichas = [];
+                for (let i = 0; i <= 6; i++) {
+                    for (let j = i; j <= 6; j++) {
+                        fichas.push([i, j]);
+                    }
+                }
+                
+                // Mezclar
+                for (let i = fichas.length - 1; i > 0; i--) {
+                    let j = Math.floor(Math.random() * (i + 1));
+                    [fichas[i], fichas[j]] = [fichas[j], fichas[i]];
+                }
+                
+                // Repartir 7 cada uno (domino real)
+                for (let i = 0; i < 7; i++) {
+                    this.fichasIA.push(fichas[i]);
+                }
+                for (let i = 7; i < 14; i++) {
+                    this.fichasJugador.push(fichas[i]);
+                }
+                this.monton = fichas.slice(14);
+                
+                // Primera ficha
+                let primera = this.fichasJugador.pop();
+                this.fichasMesa.push(primera);
+                this.extremoIzq = primera[0];
+                this.extremoDer = primera[1];
+                
+                this.turno = 'jugador';
+                this.actualizarUI();
+                this.turnoTexto.textContent = '🎯 TU TURNO';
+                this.turnoTexto.style.color = '#ffd700';
+                this.habilitarBotones(true);
+                this.verificarComer();
+            }
+            
+            // ========== ACTUALIZAR UI ==========
+            actualizarUI() {
+                // Contadores
+                this.contadorIa.textContent = this.fichasIA.length;
+                this.contadorJugador.textContent = this.fichasJugador.length;
+                
+                // Fichas IA
+                this.fichasIaVisual.innerHTML = '';
+                for (let i = 0; i < Math.min(this.fichasIA.length, 10); i++) {
+                    let d = document.createElement('div');
+                    d.className = 'ficha-tapada';
+                    this.fichasIaVisual.appendChild(d);
+                }
+                
+                // Fichas mesa - AHORA CON GAP 0 Y CONECTADAS
+                this.mesaDiv.innerHTML = '';
+                
+                // Mostrar todas las fichas de la mesa en orden
+                this.fichasMesa.forEach((f, i) => {
+                    let d = document.createElement('div');
+                    d.className = 'ficha-mesa';
+                    
+                    // Marcar extremos
+                    if (i === 0) d.classList.add('extremo-izq');
+                    if (i === this.fichasMesa.length - 1) d.classList.add('extremo-der');
+                    
+                    // Si hay más fichas, mostrar conexión
+                    if (i > 0) {
+                        // Verificar conexión con la ficha anterior
+                        let anterior = this.fichasMesa[i-1];
+                        if (anterior[1] === f[0]) {
+                            // Conexión correcta
+                            d.style.borderLeftColor = '#4caf50';
+                            d.style.borderLeftWidth = '3px';
+                        }
+                    }
+                    
+                    if (i < this.fichasMesa.length - 1) {
+                        let siguiente = this.fichasMesa[i+1];
+                        if (f[1] === siguiente[0]) {
+                            d.style.borderRightColor = '#4caf50';
+                            d.style.borderRightWidth = '3px';
+                        }
+                    }
+                    
+                    let n1 = document.createElement('span');
+                    n1.textContent = f[0];
+                    let sep = document.createElement('div');
+                    sep.className = 'sep';
+                    let n2 = document.createElement('span');
+                    n2.textContent = f[1];
+                    
+                    d.appendChild(n1);
+                    d.appendChild(sep);
+                    d.appendChild(n2);
+                    this.mesaDiv.appendChild(d);
+                });
+                
+                // Extremos
+                this.infoExtremos.innerHTML = `⬅ <span style="color:#ff1744;font-weight:bold;">${this.extremoIzq}</span>  |  <span style="color:#00e5ff;font-weight:bold;">${this.extremoDer}</span> ➡`;
+                
+                // Fichas jugador
+                this.fichasJugadorDiv.innerHTML = '';
+                this.fichasJugador.forEach((f, idx) => {
+                    let d = document.createElement('div');
+                    d.className = 'ficha-jugador';
+                    
+                    // Verificar si conecta con algún extremo
+                    let conectaIzq = (f[0] === this.extremoIzq || f[1] === this.extremoIzq);
+                    let conectaDer = (f[0] === this.extremoDer || f[1] === this.extremoDer);
+                    let puede = conectaIzq || conectaDer;
+                    
+                    if (puede && this.turno === 'jugador' && !this.terminado) {
+                        d.classList.add('valida');
+                    } else {
+                        d.classList.add('invalida');
+                    }
+                    
+                    let n1 = document.createElement('span');
+                    n1.textContent = f[0];
+                    let sep = document.createElement('div');
+                    sep.className = 'sep';
+                    let n2 = document.createElement('span');
+                    n2.textContent = f[1];
+                    
+                    d.appendChild(n1);
+                    d.appendChild(sep);
+                    d.appendChild(n2);
+                    
+                    d.addEventListener('click', () => this.jugarFicha(f, idx));
+                    d.addEventListener('touchstart', (e) => {
+                        e.preventDefault();
+                        this.jugarFicha(f, idx);
+                    }, {passive: false});
+                    
+                    this.fichasJugadorDiv.appendChild(d);
+                });
+            }
+            
+            // ========== JUGAR FICHA ==========
+            jugarFicha(ficha, index) {
+                if (this.terminado || this.turno !== 'jugador') {
+                    this.mensajeTemporal('⛔ No es tu turno', '#ff6b6b');
+                    return;
+                }
+                
+                let jugada = null;
+                let fichaOriginal = ficha;
+                
+                // Verificar conexión con extremo izquierdo
+                if (ficha[0] === this.extremoIzq) {
+                    jugada = { f: ficha, lado: 'izq' };
+                } else if (ficha[1] === this.extremoIzq) {
+                    jugada = { f: [ficha[1], ficha[0]], lado: 'izq' };
+                } 
+                // Verificar conexión con extremo derecho
+                else if (ficha[0] === this.extremoDer) {
+                    jugada = { f: ficha, lado: 'der' };
+                } else if (ficha[1] === this.extremoDer) {
+                    jugada = { f: [ficha[1], ficha[0]], lado: 'der' };
+                }
+                
+                if (!jugada) {
+                    this.mensajeTemporal('❌ No conecta con ningún extremo', '#ff6b6b');
+                    return;
+                }
+                
+                // Quitar ficha del jugador
+                this.fichasJugador.splice(index, 1);
+                
+                // Poner en mesa (se mantiene el orden correcto)
+                if (jugada.lado === 'izq') {
+                    this.fichasMesa.unshift(jugada.f);
+                    this.extremoIzq = jugada.f[0];
+                } else {
+                    this.fichasMesa.push(jugada.f);
+                    this.extremoDer = jugada.f[1];
+                }
+                
+                this.actualizarUI();
+                
+                // Verificar ganador
+                if (this.fichasJugador.length === 0) {
+                    this.mostrarResultado(true, '🎉', '¡GANASTE!', '¡Te quedaste sin fichas!');
+                    return;
+                }
+                
+                // Turno IA
+                this.turno = 'ia';
+                this.turnoTexto.textContent = '🤖 IA PENSANDO...';
+                this.turnoTexto.style.color = '#64b5f6';
+                this.habilitarBotones(false);
+                
+                setTimeout(() => this.turnoIA(), 800);
+            }
+            
+            // ========== TURNO IA ==========
+            turnoIA() {
+                if (this.terminado) return;
+                
+                let idx = -1;
+                let ficha = null;
+                
+                for (let i = 0; i < this.fichasIA.length; i++) {
+                    let f = this.fichasIA[i];
+                    if (f[0] === this.extremoIzq || f[1] === this.extremoIzq ||
+                        f[0] === this.extremoDer || f[1] === this.extremoDer) {
+                        idx = i;
+                        ficha = f;
+                        break;
+                    }
+                }
+                
+                if (ficha !== null) {
+                    let jugada = null;
+                    if (ficha[0] === this.extremoIzq) {
+                        jugada = { f: ficha, lado: 'izq' };
+                    } else if (ficha[1] === this.extremoIzq) {
+                        jugada = { f: [ficha[1], ficha[0]], lado: 'izq' };
+                    } else if (ficha[0] === this.extremoDer) {
+                        jugada = { f: ficha, lado: 'der' };
+                    } else if (ficha[1] === this.extremoDer) {
+                        jugada = { f: [ficha[1], ficha[0]], lado: 'der' };
+                    }
+                    
+                    this.fichasIA.splice(idx, 1);
+                    
+                    if (jugada.lado === 'izq') {
+                        this.fichasMesa.unshift(jugada.f);
+                        this.extremoIzq = jugada.f[0];
+                    } else {
+                        this.fichasMesa.push(jugada.f);
+                        this.extremoDer = jugada.f[1];
+                    }
+                    
+                    this.actualizarUI();
+                    this.mensajeTemporal('🤖 IA jugó una ficha', '#64b5f6');
+                    
+                    if (this.fichasIA.length === 0) {
+                        this.mostrarResultado(false, '😢', 'HAS PERDIDO', 'La IA se quedó sin fichas');
+                        return;
+                    }
+                    
+                    this.turno = 'jugador';
+                    this.turnoTexto.textContent = '🎯 TU TURNO';
+                    this.turnoTexto.style.color = '#ffd700';
+                    this.habilitarBotones(true);
+                    this.verificarComer();
+                    
+                } else {
+                    // IA NO PUEDE JUGAR - COME
+                    if (this.monton.length > 0) {
+                        let f = this.monton.pop();
+                        this.fichasIA.push(f);
+                        this.actualizarUI();
+                        this.mensajeTemporal(`🤖 IA comió [${f[0]}|${f[1]}]`, '#64b5f6');
+                        setTimeout(() => this.turnoIA(), 600);
+                    } else {
+                        // No hay fichas, pasa
+                        this.mensajeTemporal('🤖 IA pasa turno', '#ff6f00');
+                        this.turno = 'jugador';
+                        this.turnoTexto.textContent = '🎯 TU TURNO';
+                        this.turnoTexto.style.color = '#ffd700';
+                        this.habilitarBotones(true);
+                        this.verificarComer();
+                    }
+                }
+            }
+            
+            // ========== COMER ==========
+            comer() {
+                if (this.terminado || this.turno !== 'jugador') {
+                    this.mensajeTemporal('⛔ No es tu turno', '#ff6b6b');
+                    return;
+                }
+                
+                if (this.monton.length === 0) {
+                    this.mensajeTemporal('❌ No hay más fichas en el montón', '#ff6b6b');
+                    // Verificar si puede pasar
+                    let puede = this.fichasJugador.some(f => 
+                        f[0] === this.extremoIzq || f[1] === this.extremoIzq ||
+                        f[0] === this.extremoDer || f[1] === this.extremoDer
+                    );
+                    if (!puede) {
+                        this.mensajeTemporal('⚠️ No puedes jugar, pasa turno', '#ff6f00');
+                    }
+                    return;
+                }
+                
+                let f = this.monton.pop();
+                this.fichasJugador.push(f);
+                this.actualizarUI();
+                
+                // Animación
+                let fichas = this.fichasJugadorDiv.querySelectorAll('.ficha-jugador');
+                if (fichas.length > 0) {
+                    fichas[fichas.length - 1].classList.add('comiendo');
+                    setTimeout(() => {
+                        fichas[fichas.length - 1].classList.remove('comiendo');
+                    }, 500);
+                }
+                
+                this.mensajeTemporal(`🍽️ Comiste [${f[0]}|${f[1]}]`, '#4caf50');
+                
+                // Verificar si ahora puede jugar
+                let puede = this.fichasJugador.some(f2 => 
+                    f2[0] === this.extremoIzq || f2[1] === this.extremoIzq ||
+                    f2[0] === this.extremoDer || f2[1] === this.extremoDer
+                );
+                
+                if (!puede && this.monton.length > 0) {
+                    this.mensajeTemporal('🍽️ Sigue comiendo, no tienes ficha válida', '#ff6f00');
+                } else if (!puede && this.monton.length === 0) {
+                    this.mensajeTemporal('⚠️ No puedes jugar, pasa turno', '#ff6f00');
+                }
+            }
+            
+            // ========== PASAR ==========
+            pasar() {
+                if (this.terminado || this.turno !== 'jugador') {
+                    this.mensajeTemporal('⛔ No es tu turno', '#ff6b6b');
+                    return;
+                }
+                
+                let puede = this.fichasJugador.some(f => 
+                    f[0] === this.extremoIzq || f[1] === this.extremoIzq ||
+                    f[0] === this.extremoDer || f[1] === this.extremoDer
+                );
+                
+                if (puede) {
+                    this.mensajeTemporal('⚠️ ¡Tienes fichas para jugar!', '#ff6f00');
+                    return;
+                }
+                
+                this.mensajeTemporal('⏭️ Pasaste turno', '#ff6f00');
+                this.turno = 'ia';
+                this.turnoTexto.textContent = '🤖 IA PENSANDO...';
+                this.turnoTexto.style.color = '#64b5f6';
+                this.habilitarBotones(false);
+                setTimeout(() => this.turnoIA(), 800);
+            }
+            
+            // ========== VERIFICAR COMER ==========
+            verificarComer() {
+                if (this.turno !== 'jugador' || this.terminado) return;
+                
+                let puede = this.fichasJugador.some(f => 
+                    f[0] === this.extremoIzq || f[1] === this.extremoIzq ||
+                    f[0] === this.extremoDer || f[1] === this.extremoDer
+                );
+                
+                if (!puede && this.monton.length > 0) {
+                    this.mensajeTemporal('🍽️ ¡Come una ficha del montón!', '#ff6f00');
+                } else if (!puede && this.monton.length === 0) {
+                    this.mensajeTemporal('⚠️ No puedes jugar, pasa turno', '#ff6f00');
+                }
+            }
+            
+            // ========== MENSAJES ==========
+            mensajeTemporal(texto, color = '#ffd700') {
+                this.turnoTexto.textContent = texto;
+                this.turnoTexto.style.color = color;
+                
+                if (this.turno === 'jugador' && !this.terminado) {
+                    setTimeout(() => {
+                        if (!this.terminado) {
+                            this.turnoTexto.textContent = '🎯 TU TURNO';
+                            this.turnoTexto.style.color = '#ffd700';
+                        }
+                    }, 2000);
+                }
+            }
+            
+            mostrarResultado(gano, emoji, texto, sub) {
+                this.terminado = true;
+                this.msgTexto.textContent = `${emoji} ${texto}`;
+                this.msgSub.textContent = sub;
+                this.mensaje.style.display = 'block';
+                this.habilitarBotones(false);
+                this.turnoTexto.textContent = '🏁 FIN DEL JUEGO';
+                this.turnoTexto.style.color = '#ffd700';
+                
+                if (navigator.vibrate) {
+                    if (gano) navigator.vibrate([50, 100, 50, 100, 50]);
+                    else navigator.vibrate([100, 50, 100]);
+                }
+            }
+            
+            // ========== BOTONES ==========
+            habilitarBotones(hab) {
+                this.btnComer.disabled = !hab;
+                this.btnPasar.disabled = !hab;
+            }
+            
+            eventos() {
+                this.btnComer.addEventListener('click', () => this.comer());
+                this.btnPasar.addEventListener('click', () => this.pasar());
+                this.btnReiniciar.addEventListener('click', () => this.reiniciar());
+            }
+            
+            reiniciar() {
+                this.iniciar();
+                if (navigator.vibrate) navigator.vibrate(20);
+            }
+        }
+        
+        // ========== INICIAR ==========
+        let juego;
+        document.addEventListener('DOMContentLoaded', () => {
+            juego = new JuegoDomino();
+            
+            document.addEventListener('touchmove', (e) => {
+                if (e.target.closest('#app')) e.preventDefault();
+            }, {passive: false});
+        });
+    </script>
+</body>
+</html>
